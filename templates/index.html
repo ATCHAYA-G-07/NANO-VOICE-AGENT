@@ -1,9 +1,147 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <title>Nano Voice Agent</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
-    <h1>Nano Voice Agent Started Successfully 🚀</h1>
+
+    <div class="container">
+
+        <h1>🚀 Nano Voice Agent</h1>
+
+        <p>AI Powered Smart Commerce Assistant</p>
+
+        <div class="chat-box" id="chatBox">
+
+        </div>
+
+        <div class="input-area">
+
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Type your message..."
+            >
+
+            <button onclick="talkToAgent()">
+                Send
+            </button>
+
+            <button onclick="startVoice()">
+                🎤
+            </button>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        function speak(text) {
+
+            const speech =
+                new SpeechSynthesisUtterance(text);
+
+            speech.lang = "en-US";
+
+            window.speechSynthesis.speak(speech);
+
+        }
+
+        async function talkToAgent() {
+
+            let message =
+                document
+                .getElementById("userInput")
+                .value;
+
+            if (message.trim() === "") {
+
+                return;
+
+            }
+
+            let chatBox =
+                document
+                .getElementById("chatBox");
+
+            chatBox.innerHTML += `
+
+                <div class="message user">
+                    ${message}
+                </div>
+
+            `;
+
+            const response =
+                await fetch("/chat", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        message: message
+                    })
+
+                });
+
+            const data = await response.json();
+
+            chatBox.innerHTML += `
+
+                <div class="message bot">
+                    ${data.reply}
+                </div>
+
+            `;
+
+            speak(data.reply);
+
+            document
+                .getElementById("userInput")
+                .value = "";
+
+            chatBox.scrollTop =
+                chatBox.scrollHeight;
+
+        }
+
+        function startVoice() {
+
+            const recognition =
+                new webkitSpeechRecognition();
+
+            recognition.lang = "en-US";
+
+            recognition.onresult = function(event) {
+
+                const voiceText =
+                    event.results[0][0].transcript;
+
+                document
+                    .getElementById("userInput")
+                    .value = voiceText;
+
+                talkToAgent();
+
+            };
+
+            recognition.start();
+
+        }
+
+    </script>
+
 </body>
+
 </html>
